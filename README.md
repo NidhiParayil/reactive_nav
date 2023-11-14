@@ -1,6 +1,6 @@
 # reactive_nav
 
-Reactive navigation through a deformable environment, where the deformable objects are assumed to be rigid bodoes attached to the environemt with prismatic or linaear joints. 
+Reactive navigation through a deformable environment, where the deformable objects are assumed to be rigid bodies attached to the environemt with prismatic or linaear joints. 
 
 The planner has both global and local planner. 
 
