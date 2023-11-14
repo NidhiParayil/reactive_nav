@@ -44,7 +44,7 @@ print(path)
 print("Force")
 print(force_cost)
 
-count =1
+count =0
 
 points=[]
 colour =[]
@@ -53,27 +53,41 @@ obs_points = []
 input("Press enter to continue")
 
 
+dist_to_goal = 100
+dist_to_next_goal = 100
+dum_timmer = 0
+# points.append([path[0][0],path[0][1],6])
 
-while(count < len(path)):
-    points.append([path[count][0],path[count][1],6])
-    colour.append([1, count/len(path),0])
-
-# ******
-# have to write a non bouncing controller
-
-# *******
-    dis = 100
-    while( (dis>.2) or (dis >.01 and count ==len(path)-1)) :
-        cur_x, cur_y, obs= maze.step(path[count][0],path[count][1], np.abs(force_cost[count]))
-        dis = np.sqrt((cur_x-path[count][0])**2 +(cur_y-path[count][1])**2 )
-        rob_points.append([cur_x,cur_y,6.2])
-        obs_points.append([2,2.5+obs,6.3])
-        # print(dis, count)
-    count = count+1
-    
+for pt in path:
+    points.append(np.asarray([pt[0],pt[1], 6]))
+    # print(pt)
 
 maze.debug_traj(points, [1,0,0],lineW=3)
-maze.debug(rob_points, [1,1,0],lineW=3)
+
+
+
+while(dum_timmer <100000 ):
+
+    # print(path[count+1], dist_to_goal,dist_to_next_goal)
+    cur_x, cur_y, obs= maze.step(path[count+1][0],path[count+1][1], np.abs(force_cost[count]))
+    # points.append([path[count][0],path[count][1],6])
+    colour.append([1, count/len(path),0])
+    dist_to_goal = np.linalg.norm(np.asarray([cur_x,cur_y]) - path[-1])
+    dist_to_next_goal =np.linalg.norm(np.asarray([cur_x,cur_y]) - path[count+1])
+    if dist_to_goal < .1:
+        break
+    if dist_to_next_goal < .75:
+        count = count+1
+
+        if count == len(path)-1:
+            break
+    rob_points.append([cur_x,cur_y,6.2])
+    obs_points.append([2,2.5+obs,6.3])
+    dum_timmer = dum_timmer +1
+    
+
+
+maze.debug_traj(rob_points, [1,1,0],lineW=3)
 # maze.debug(obs_points, [0,0,1],lineW=3)
 
 print("all done")

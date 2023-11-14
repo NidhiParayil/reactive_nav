@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import collections  as mc
 from collections import deque
 import sys
-sys.path.append('/home/nidhi/pybullet_ws/planner/')
+sys.path.append('/home/nidhi/reactive_nav/planner/')
 from planners import Planner
 from scripts import polygon
 
@@ -159,7 +159,7 @@ class RRT_star(Planner):
         # agent_env.display()
         if agent_env.check_poly_collision() == True:
             # print("collided")
-            return 0.5
+            return 10000
         else:
             return 0
 

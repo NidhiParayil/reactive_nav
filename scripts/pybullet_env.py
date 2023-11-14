@@ -34,7 +34,7 @@ class MazeEnv():
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.resetSimulation(p.RESET_USE_DEFORMABLE_WORLD)
         self.planeID = p.loadURDF("plane.urdf")
-        self.agentID = p.loadURDF("/home/nidhi/pybullet_ws/urdf/agent.urdf",flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT )
+        self.agentID = p.loadURDF("/home/nidhi/reactive_nav/urdf/agent.urdf",flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT )
         numJoints = p.getNumJoints(self.agentID)
     
         jointInfo = namedtuple('jointInfo', 
