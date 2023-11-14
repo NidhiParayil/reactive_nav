@@ -36,7 +36,7 @@ class MazeEnv():
         self.planeID = p.loadURDF("plane.urdf")
         self.agentID = p.loadURDF("/home/nidhi/reactive_nav/urdf/agent.urdf",flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT )
         numJoints = p.getNumJoints(self.agentID)
-    
+        self.control_type = "ADMITTANCE"
         jointInfo = namedtuple('jointInfo', 
             ['id','type','lowerLimit','upperLimit','maxForce','maxVelocity','controllable'])
         self.controllable_joints = []
@@ -88,14 +88,14 @@ class MazeEnv():
         self.debug(self.obs_polygon_edges, [1,0,1],3)
         return self.obs_polygon_edges
 
-    def step_simulation(self):
-        p.stepSimulation()
-        joint1, joint2, joint3 = p.getJointStates(self.agentID,self.controllable_joints)
-        # print("joint states", joint1[0], joint2[0])
-        if self.vis:
-            time.sleep(self.SIMULATION_STEP_DELAY)
-            self.p_bar.update(1)
-        return joint1[0], joint2[0], joint3[0], joint1[1], joint2[1]
+    # def step_si(self):
+        
+        
+    #     # print("joint states", joint1[0], joint2[0])
+    #     if self.vis:
+    #         time.sleep(self.SIMULATION_STEP_DELAY)
+    #         self.p_bar.update(1)
+    #     return 
 
     def read_debug_parameter(self):
         x = p.readUserDebugParameter(self.xin)
@@ -103,18 +103,28 @@ class MazeEnv():
         return x, y
 
 
-    def move_joints(self, x, y, dx, dy, force_cost):
-        p.setJointMotorControl2(self.agentID, self.controllable_joints[0],targetPosition= x,controlMode= p.POSITION_CONTROL, force=force_cost)
-        p.setJointMotorControl2(self.agentID, self.controllable_joints[1],targetPosition= y,controlMode=p.POSITION_CONTROL, force=force_cost)
+    def move_joints_pos_control(self, x, y):
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[0],targetPosition= x,controlMode= p.POSITION_CONTROL)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[1],targetPosition= y,controlMode=p.POSITION_CONTROL)
     
-    def step(self, x, y, force):
-        x_, y_, obs, dx, dy =self.step_simulation()
-        # x, y = self.read_debug_parameter()
-        i=0
-        for i in range(0,10):
-            self.move_joints(x,y,dx, dy,force)
-            i =i+1
-        return x_, y_, obs
+    def move_joints_admittance_controller(self, px, py, vx, vy):
+        joint_torques = 1
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[0], p.TORQUE_CONTROL, force=joint_torques)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[1], p.TORQUE_CONTROL, force=joint_torques)
+
+
+
+    def step(self, x, y):
+        p.stepSimulation()
+        joint1, joint2, joint3 = p.getJointStates(self.agentID,self.controllable_joints)
+        px, py, pobs = joint1[0], joint2[0], joint3[0]
+        if self.control_type == "POSITION":
+            self.move_joints_pos_control(x,y)
+        if self.control_type == "ADMITTANCE":  
+            vx, vy, vobs = joint1[1], joint2[1], joint3[1]
+            self.move_joints_admittance_controller(px, py, vx, vy)
+        time.sleep(self.SIMULATION_STEP_DELAY)
+        return px, py, pobs
 
     def get_joint_states(self):
         j1, j2, _ = p.getJointStates(self.agentID, self.controllable_joints)

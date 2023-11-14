@@ -69,14 +69,14 @@ maze.debug_traj(points, [1,0,0],lineW=3)
 while(dum_timmer <100000 ):
 
     # print(path[count+1], dist_to_goal,dist_to_next_goal)
-    cur_x, cur_y, obs= maze.step(path[count+1][0],path[count+1][1], np.abs(force_cost[count]))
+    cur_x, cur_y, obs= maze.step(path[count+1][0],path[count+1][1])
     # points.append([path[count][0],path[count][1],6])
     colour.append([1, count/len(path),0])
     dist_to_goal = np.linalg.norm(np.asarray([cur_x,cur_y]) - path[-1])
     dist_to_next_goal =np.linalg.norm(np.asarray([cur_x,cur_y]) - path[count+1])
     if dist_to_goal < .1:
         break
-    if dist_to_next_goal < .75:
+    if dist_to_next_goal < .25:
         count = count+1
 
         if count == len(path)-1:

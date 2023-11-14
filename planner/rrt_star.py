@@ -236,7 +236,7 @@ class RRT_star(Planner):
                 # print('success')
                 # break
                 path = self.dijkstra(G)
-                force = np.full(len(path), 1) 
+                force = np.full(len(path), 0.1) 
         return path, force
 
 
