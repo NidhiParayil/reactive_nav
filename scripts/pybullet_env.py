@@ -36,30 +36,33 @@ class MazeEnv():
         self.planeID = p.loadURDF("plane.urdf")
         self.agentID = p.loadURDF("/home/nidhi/reactive_nav/urdf/agent.urdf",flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT )
         numJoints = p.getNumJoints(self.agentID)
-        self.control_type = "ADMITTANCE"
+        self.control_type = "POSITION"
         jointInfo = namedtuple('jointInfo', 
-            ['id','type','lowerLimit','upperLimit','maxForce','maxVelocity','controllable'])
+            ['id','type','controllable'])
         self.controllable_joints = []
         self.joints =[]
         for i in range(numJoints):
             info = p.getJointInfo(self.agentID, i)
             jointID = info[0]
             jointType = info[2]
-            jointLowerLimit = info[8]
-            jointUpperLimit = info[9]
-            jointMaxForce = info[10]
-            jointMaxVelocity = info[11]
+            # jointLowerLimit = info[8]
+            # jointUpperLimit = info[9]
+            # jointMaxForce = info[10]
+            # jointMaxVelocity = info[11]
             controllable = (jointType != p.JOINT_FIXED)
             if controllable:
                 self.controllable_joints.append(jointID)
-                p.setJointMotorControl2(self.agentID, jointID, p.VELOCITY_CONTROL, targetVelocity=0, force=0)
-            info = jointInfo(jointID,jointType,jointLowerLimit,
-                jointUpperLimit,jointMaxForce,jointMaxVelocity,controllable)
+                p.setJointMotorControl2(self.agentID, jointID, p.VELOCITY_CONTROL, force=0.0)
+                p.enableJointForceTorqueSensor(self.agentID, jointID)
+            info = jointInfo(jointID,jointType,controllable)
             self.joints.append(info)
         
 
         self.xin = p.addUserDebugParameter("x", -10, 10, 0.01)
         self.yin = p.addUserDebugParameter("y", -15, 5, .02)
+        self.f1 =0
+        self.f2 =0
+        self.force_flag = 0
 
     def debug_points(self, points):
         p.addUserDebugPoints([points],[[0,1,1]],5)
@@ -104,13 +107,17 @@ class MazeEnv():
 
 
     def move_joints_pos_control(self, x, y):
+        print("position")
         p.setJointMotorControl2(self.agentID, self.controllable_joints[0],targetPosition= x,controlMode= p.POSITION_CONTROL)
         p.setJointMotorControl2(self.agentID, self.controllable_joints[1],targetPosition= y,controlMode=p.POSITION_CONTROL)
     
-    def move_joints_admittance_controller(self, px, py, vx, vy):
-        joint_torques = 1
-        p.setJointMotorControl2(self.agentID, self.controllable_joints[0], p.TORQUE_CONTROL, force=joint_torques)
-        p.setJointMotorControl2(self.agentID, self.controllable_joints[1], p.TORQUE_CONTROL, force=joint_torques)
+    def move_joints_admittance_controller(self, px, py, vx, vy, f1, f2):
+        print("admittance")
+        # p.setJointMotorControl2(self.agentID, self.controllable_joints[0], p.TORQUE_CONTROL, force=10)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[1], p.VELOCITY_CONTROL, force=0.0)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[1], p.TORQUE_CONTROL, force=f2)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[0], p.VELOCITY_CONTROL, force=0.0)
+        p.setJointMotorControl2(self.agentID, self.controllable_joints[0], p.TORQUE_CONTROL, force=f1)
 
 
 
@@ -118,12 +125,40 @@ class MazeEnv():
         p.stepSimulation()
         joint1, joint2, joint3 = p.getJointStates(self.agentID,self.controllable_joints)
         px, py, pobs = joint1[0], joint2[0], joint3[0]
-        if self.control_type == "POSITION":
+        vx, vy, vobs = joint1[1], joint2[1], joint3[1]
+        # fx, fy, fobs = joint1[2], joint2[2], joint3[2]
+        values = p.getContactPoints(self.agentID)
+        for val in values:
+            force = val[9]
+        #     print(val)
+        #     print(force)
+        # print(force)
+
+        # print(fx, fy, self.control_type)
+        # if any(np.abs(value) > 0 for value in fy):
+        if np.abs(force)>0.5:
+            self.control_type = "ADMITTANCE"
+        else:
+            self.control_type = "POSITION"
+        
+        if self.control_type == "ADMITTANCE":
+            self.f1 = 0
+            self.f2 = force*100
+            self.move_joints_admittance_controller(px, py, vx, vy, self.f1, self.f2)
+            self.force_flag = self.force_flag+1
+            if self.force_flag > 10:
+                self.control_type = "POSITION"
+                self.move_joints_pos_control(x,y)
+                self.force_flag =0
+            
+        else:
             self.move_joints_pos_control(x,y)
-        if self.control_type == "ADMITTANCE":  
-            vx, vy, vobs = joint1[1], joint2[1], joint3[1]
-            self.move_joints_admittance_controller(px, py, vx, vy)
-        time.sleep(self.SIMULATION_STEP_DELAY)
+            
+        # self.move_joints_pos_control(x,y)
+        # self.move_joints_admittance_controller(px, py, vx, vy, fx, fy)
+
+            
+        time.sleep(self.SIMULATION_STEP_DELAY*10)
         return px, py, pobs
 
     def get_joint_states(self):

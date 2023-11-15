@@ -40,6 +40,7 @@ print('time taken for krrt path in milli seconds:', (end_time - start_time)*1000
 # path.reverse()
 # force_cost.reverse()
 print("PATHHHHHHHHH")
+path =[(0, 0), (0.6667548633853745, -0.21316179805948013), (1.3333762258673927, 0.0004171313381022834), (1.5402560850059375, 0.669147812466773), (1.5667850293639152, 2.446218362722905), (4.75, 4.75)]
 print(path)
 print("Force")
 print(force_cost)

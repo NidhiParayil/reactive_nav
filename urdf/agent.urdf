@@ -55,7 +55,7 @@
     <parent link="agent_dummy"/>
     <child link="agent"/>
     <axis xyz ="0 1 0"/> 
-    <limit effort="1000.0" lower="-15" upper="5" velocity=".1"/>
+    <limit effort="100000.0" lower="-15" upper="5" velocity=".1"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
 
@@ -76,12 +76,16 @@
       </geometry>
       <origin rpy="0 0 0" xyz="2 2.5 3"/>
     </collision>
+        <inertial>
+      <mass value="10"/>
+      <inertia ixx="0.4" ixy="0.0" ixz="0.0" iyy="0.4" iyz="0.0" izz="0.2"/>
+    </inertial>
   </link> 
 
   <joint name="world_ob" type="prismatic">
     <parent link="world"/>
     <child link="obstacle"/>
-    <limit effort="1000.0" lower="-.01" upper="1" velocity=".1"/>
+    <limit effort=".0001" lower="0" upper=".01" velocity=".1"/>
     <axis xyz ="0 1 0"/> 
   </joint>
 <!-- 

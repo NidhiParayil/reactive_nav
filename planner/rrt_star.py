@@ -159,7 +159,7 @@ class RRT_star(Planner):
         # agent_env.display()
         if agent_env.check_poly_collision() == True:
             # print("collided")
-            return 10000
+            return 0
         else:
             return 0
 
